@@ -2,11 +2,12 @@
 
 import React, { useState } from "react";
 import { useBinanceLive } from "@/hooks/useBinanceLive";
+import Header from "@/components/Header";
 import CandleChart from "@/components/CandleChart";
 import AssetTable from "@/components/AssetTable";
 import OrderBook from "@/components/OrderBook";
 import ExecutionPad from "@/components/ExecutionPad";
-import { ArrowUpRight, ShieldCheck, Activity, Plus } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
 export default function StrataVaultDashboard() {
   const [selectedAsset, setSelectedAsset] = useState<string>("BTCUSDT");
@@ -26,55 +27,13 @@ export default function StrataVaultDashboard() {
           : 80400;
 
   return (
-    <div className="min-h-screen font-mono text-xs selection:bg-vault-gold selection:text-black pb-12">
-      {/* Institutional Top Masthead */}
-      <header className="border-b border-vault-border px-8 py-5 flex items-center justify-between bg-vault-panel/40 backdrop-blur-md sticky top-0 z-40">
-        <div className="flex items-center gap-6">
-          <div className="flex flex-col">
-            <span className="font-serif text-2xl tracking-[0.2em] text-white font-semibold uppercase">
-              Strata <span className="text-vault-gold font-normal">Vault</span>
-            </span>
-            <span className="text-[10px] tracking-widest text-vault-silver/60 uppercase">
-              Sovereign Asset & Wealth Terminal
-            </span>
-          </div>
-
-          <div className="hidden md:flex items-center gap-4 pl-6 border-l border-vault-border text-[11px]">
-            <span className="flex items-center gap-1.5 text-vault-emerald">
-              <span className="w-1.5 h-1.5 rounded-full bg-vault-emerald animate-pulse" />
-              ZURICH // PRIMARY CUSTODY
-            </span>
-            <span className="text-vault-silver/30">|</span>
-            <span>
-              LATENCY: <strong className="text-white">3.8ms</strong>
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setIsExecutionOpen(true)}
-            className="px-3.5 py-1.5 border border-vault-gold/40 hover:border-vault-gold bg-vault-gold/10 hover:bg-vault-gold/20 text-vault-gold hover:text-white rounded-lg transition-all flex items-center gap-1.5 cursor-pointer shadow-[0_0_15px_rgba(197,168,128,0.15)] text-[11px] tracking-wider uppercase font-semibold"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Initiate OTC
-          </button>
-
-          <div className="flex items-center gap-2 px-3 py-1.5 border border-vault-border bg-vault-surface/60 rounded-lg shadow-sm">
-            <ShieldCheck className="w-3.5 h-3.5 text-vault-gold" />
-            <span className="text-[11px] text-white/90">VAULT TIER I</span>
-          </div>
-
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 border border-vault-border/80 bg-vault-surface/40 rounded-lg text-vault-silver/70 text-[11px]">
-            <Activity className="w-3 h-3 text-vault-emerald" />
-            <span className="text-white/80">SYNCHRONIZED</span>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen font-mono text-xs selection:bg-vault-gold selection:text-black pb-16">
+      {/* Global Navigation Header */}
+      <Header onOpenOTC={() => setIsExecutionOpen(true)} />
 
       {/* Main Grid Content */}
       <main className="max-w-[1600px] mx-auto p-8 flex flex-col gap-8">
-        {/* Top 4 Cards */}
+        {/* Top 4 Metric Cards */}
         <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="p-6 vault-card">
             <div className="text-[10px] uppercase tracking-wider text-vault-silver/70 mb-2">
@@ -223,7 +182,7 @@ export default function StrataVaultDashboard() {
           </div>
         </section>
 
-        {/* Bottom Section: Asset Table with Interactive Selection */}
+        {/* Bottom Section: Asset Table */}
         <section>
           <AssetTable
             selectedAsset={selectedAsset}
