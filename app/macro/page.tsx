@@ -10,7 +10,6 @@ import {
   TrendingDown,
   ShieldCheck,
   Globe,
-  BarChart3,
   Percent,
   CheckCircle2,
 } from "lucide-react";
@@ -111,7 +110,7 @@ export default function MacroPage() {
       {/* Global Navigation Header */}
       <Header onOpenOTC={() => setIsExecutionOpen(true)} />
 
-      <main className="max-w-[1600px] mx-auto p-8 flex flex-col gap-8">
+      <main className="max-w-[1600px] mx-auto p-4 md:p-8 flex flex-col gap-6 md:gap-8">
         {/* Top Sovereign Macro Barometer Cards */}
         <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="p-6 vault-card">
@@ -158,7 +157,7 @@ export default function MacroPage() {
               Sovereign Counterparty Risk
             </div>
             <div className="font-serif text-3xl md:text-4xl text-white font-normal tabular-nums mb-3">
-              AAA<span className="text-vault-emerald text-xl"> // SECURE</span>
+              AAA<span className="text-vault-emerald text-xl">{" // SECURE"}</span>
             </div>
             <div className="flex items-center gap-1.5 text-vault-emerald text-[11px]">
               <CheckCircle2 className="w-3.5 h-3.5" />
@@ -322,7 +321,6 @@ export default function MacroPage() {
         isOpen={isExecutionOpen}
         onClose={() => setIsExecutionOpen(false)}
         symbol="BTCUSDT"
-        currentPrice={80400}
       />
     </div>
   );

@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useBinanceLive } from "@/hooks/useBinanceLive";
+import { formatCompactUsd, formatUsd } from "@/lib/assets";
 import Header from "@/components/Header";
 import CandleChart from "@/components/CandleChart";
 import AssetTable from "@/components/AssetTable";
@@ -9,22 +10,82 @@ import OrderBook from "@/components/OrderBook";
 import ExecutionPad from "@/components/ExecutionPad";
 import { ArrowUpRight } from "lucide-react";
 
+const FEATURED = [
+  { pair: "BTCUSDT", label: "Bitcoin Core", alloc: "50.0%" },
+  { pair: "ETHUSDT", label: "Ethereum", alloc: "30.0%" },
+  { pair: "SOLUSDT", label: "Solana", alloc: "20.0%" },
+];
+
+function LiveAssetCard({
+  pair,
+  label,
+  alloc,
+  isSelected,
+  onSelect,
+}: {
+  pair: string;
+  label: string;
+  alloc: string;
+  isSelected: boolean;
+  onSelect: () => void;
+}) {
+  const live = useBinanceLive(pair);
+  const isPos = live.change24h >= 0;
+
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-pressed={isSelected}
+      className={`p-6 vault-card cursor-pointer transition-all text-left ${
+        isSelected
+          ? "!border-vault-gold/60 shadow-[0_0_20px_rgba(197,168,128,0.15)]"
+          : ""
+      }`}
+    >
+      <div className="flex justify-between items-start mb-2">
+        <span className="text-[10px] uppercase tracking-wider text-vault-silver/70">
+          {label}
+        </span>
+        <span
+          className={`text-[10px] px-2 py-0.5 bg-vault-surface border border-vault-border rounded tabular-nums ${
+            isPos ? "text-vault-emerald" : "text-vault-rose"
+          }`}
+        >
+          {live.price
+            ? `${isPos ? "+" : ""}${live.change24h.toFixed(2)}%`
+            : "LIVE"}
+        </span>
+      </div>
+      <div
+        className={`font-serif text-3xl md:text-4xl font-normal tabular-nums transition-colors duration-200 ${
+          live.direction === "up"
+            ? "text-vault-emerald"
+            : live.direction === "down"
+              ? "text-vault-rose"
+              : "text-white"
+        }`}
+      >
+        {live.price ? (
+          `$${formatUsd(live.price)}`
+        ) : (
+          <span className="inline-block h-9 w-40 rounded bg-vault-surface animate-pulse align-middle" />
+        )}
+      </div>
+      <div className="mt-3 text-[11px] text-vault-silver/60 flex items-center justify-between">
+        <span>
+          VOL 24H:{" "}
+          {live.volume24h ? `$${formatCompactUsd(live.volume24h)}` : "--"}
+        </span>
+        <span className="text-white">ALLOC: {alloc}</span>
+      </div>
+    </button>
+  );
+}
+
 export default function StrataVaultDashboard() {
   const [selectedAsset, setSelectedAsset] = useState<string>("BTCUSDT");
   const [isExecutionOpen, setIsExecutionOpen] = useState<boolean>(false);
-
-  const btcLive = useBinanceLive("btcusdt");
-  const ethLive = useBinanceLive("ethusdt");
-  const solLive = useBinanceLive("solusdt");
-
-  const currentPrice =
-    selectedAsset === "BTCUSDT"
-      ? btcLive.price
-      : selectedAsset === "ETHUSDT"
-        ? ethLive.price
-        : selectedAsset === "SOLUSDT"
-          ? solLive.price
-          : 80400;
 
   return (
     <div className="min-h-screen font-mono text-xs selection:bg-vault-gold selection:text-black pb-16">
@@ -32,9 +93,9 @@ export default function StrataVaultDashboard() {
       <Header onOpenOTC={() => setIsExecutionOpen(true)} />
 
       {/* Main Grid Content */}
-      <main className="max-w-[1600px] mx-auto p-8 flex flex-col gap-8">
+      <main className="max-w-[1600px] mx-auto p-4 md:p-8 flex flex-col gap-6 md:gap-8">
         {/* Top 4 Metric Cards */}
-        <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           <div className="p-6 vault-card">
             <div className="text-[10px] uppercase tracking-wider text-vault-silver/70 mb-2">
               Net Sovereign Custody
@@ -48,129 +109,18 @@ export default function StrataVaultDashboard() {
             </div>
           </div>
 
-          {/* BTC Card */}
-          <div
-            onClick={() => setSelectedAsset("BTCUSDT")}
-            className={`p-6 vault-card cursor-pointer transition-all ${
-              selectedAsset === "BTCUSDT"
-                ? "!border-vault-gold/60 shadow-[0_0_20px_rgba(197,168,128,0.15)]"
-                : ""
-            }`}
-          >
-            <div className="flex justify-between items-start mb-2">
-              <span className="text-[10px] uppercase tracking-wider text-vault-silver/70">
-                Bitcoin Core
-              </span>
-              <span className="text-[10px] px-2 py-0.5 bg-vault-surface text-vault-gold border border-vault-border rounded">
-                LIVE
-              </span>
-            </div>
-            <div
-              className={`font-serif text-3xl md:text-4xl font-normal tabular-nums transition-colors duration-200 ${
-                btcLive.direction === "up"
-                  ? "text-vault-emerald"
-                  : btcLive.direction === "down"
-                    ? "text-vault-rose"
-                    : "text-white"
-              }`}
-            >
-              $
-              {btcLive.price
-                ? btcLive.price.toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })
-                : "Loading..."}
-            </div>
-            <div className="mt-3 text-[11px] text-vault-silver/60 flex items-center justify-between">
-              <span>VOL: $38.4B</span>
-              <span className="text-white">ALLOC: 50.0%</span>
-            </div>
-          </div>
-
-          {/* ETH Card */}
-          <div
-            onClick={() => setSelectedAsset("ETHUSDT")}
-            className={`p-6 vault-card cursor-pointer transition-all ${
-              selectedAsset === "ETHUSDT"
-                ? "!border-vault-gold/60 shadow-[0_0_20px_rgba(197,168,128,0.15)]"
-                : ""
-            }`}
-          >
-            <div className="flex justify-between items-start mb-2">
-              <span className="text-[10px] uppercase tracking-wider text-vault-silver/70">
-                Ethereum
-              </span>
-              <span className="text-[10px] px-2 py-0.5 bg-vault-surface text-vault-gold border border-vault-border rounded">
-                LIVE
-              </span>
-            </div>
-            <div
-              className={`font-serif text-3xl md:text-4xl font-normal tabular-nums transition-colors duration-200 ${
-                ethLive.direction === "up"
-                  ? "text-vault-emerald"
-                  : ethLive.direction === "down"
-                    ? "text-vault-rose"
-                    : "text-white"
-              }`}
-            >
-              $
-              {ethLive.price
-                ? ethLive.price.toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })
-                : "Loading..."}
-            </div>
-            <div className="mt-3 text-[11px] text-vault-silver/60 flex items-center justify-between">
-              <span>GAS: 12 GWEI</span>
-              <span className="text-white">ALLOC: 30.0%</span>
-            </div>
-          </div>
-
-          {/* SOL Card */}
-          <div
-            onClick={() => setSelectedAsset("SOLUSDT")}
-            className={`p-6 vault-card cursor-pointer transition-all ${
-              selectedAsset === "SOLUSDT"
-                ? "!border-vault-gold/60 shadow-[0_0_20px_rgba(197,168,128,0.15)]"
-                : ""
-            }`}
-          >
-            <div className="flex justify-between items-start mb-2">
-              <span className="text-[10px] uppercase tracking-wider text-vault-silver/70">
-                Solana
-              </span>
-              <span className="text-[10px] px-2 py-0.5 bg-vault-surface text-vault-gold border border-vault-border rounded">
-                LIVE
-              </span>
-            </div>
-            <div
-              className={`font-serif text-3xl md:text-4xl font-normal tabular-nums transition-colors duration-200 ${
-                solLive.direction === "up"
-                  ? "text-vault-emerald"
-                  : solLive.direction === "down"
-                    ? "text-vault-rose"
-                    : "text-white"
-              }`}
-            >
-              $
-              {solLive.price
-                ? solLive.price.toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })
-                : "Loading..."}
-            </div>
-            <div className="mt-3 text-[11px] text-vault-silver/60 flex items-center justify-between">
-              <span>TPS: 2,840</span>
-              <span className="text-white">ALLOC: 20.0%</span>
-            </div>
-          </div>
+          {FEATURED.map((asset) => (
+            <LiveAssetCard
+              key={asset.pair}
+              {...asset}
+              isSelected={selectedAsset === asset.pair}
+              onSelect={() => setSelectedAsset(asset.pair)}
+            />
+          ))}
         </section>
 
         {/* Middle Section: Chart + OrderBook */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
           <div className="lg:col-span-2">
             <CandleChart key={selectedAsset} symbol={selectedAsset} />
           </div>
@@ -196,7 +146,6 @@ export default function StrataVaultDashboard() {
         isOpen={isExecutionOpen}
         onClose={() => setIsExecutionOpen(false)}
         symbol={selectedAsset}
-        currentPrice={currentPrice}
       />
     </div>
   );

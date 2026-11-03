@@ -22,7 +22,7 @@ export default function ReservesPage() {
       <Header onOpenOTC={() => setIsExecutionOpen(true)} />
 
       {/* Main Reserves Content */}
-      <main className="max-w-[1600px] mx-auto p-8 flex flex-col gap-8">
+      <main className="max-w-[1600px] mx-auto p-4 md:p-8 flex flex-col gap-6 md:gap-8">
         {/* Top Audit KPI Cards */}
         <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="p-6 vault-card">
@@ -135,7 +135,6 @@ export default function ReservesPage() {
         isOpen={isExecutionOpen}
         onClose={() => setIsExecutionOpen(false)}
         symbol="BTCUSDT"
-        currentPrice={80400}
       />
     </div>
   );

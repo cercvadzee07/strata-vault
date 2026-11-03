@@ -4,6 +4,13 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ShieldCheck, Activity, Plus } from "lucide-react";
+import { useStreamStatus } from "@/hooks/useBinanceLive";
+
+const STATUS_STYLE = {
+  live: { label: "LIVE", color: "text-vault-emerald" },
+  connecting: { label: "SYNCING", color: "text-vault-gold" },
+  reconnecting: { label: "RECONNECTING", color: "text-vault-rose" },
+} as const;
 
 interface HeaderProps {
   onOpenOTC?: () => void;
@@ -18,29 +25,31 @@ const NAV_LINKS = [
 
 export default function Header({ onOpenOTC }: HeaderProps) {
   const pathname = usePathname();
+  const status = STATUS_STYLE[useStreamStatus()];
 
   return (
-    <header className="border-b border-vault-border px-8 py-4 flex flex-wrap items-center justify-between gap-4 bg-vault-panel/40 backdrop-blur-md sticky top-0 z-40 font-mono text-xs">
+    <header className="border-b border-vault-border px-4 md:px-8 py-3 md:py-4 flex flex-wrap items-center justify-between gap-3 md:gap-4 bg-vault-panel/40 backdrop-blur-md sticky top-0 z-40 font-mono text-xs">
       {/* Brand & Masthead */}
-      <div className="flex items-center gap-8">
+      <div className="flex flex-wrap items-center gap-3 md:gap-8 w-full lg:w-auto">
         <Link href="/" className="flex flex-col group cursor-pointer">
-          <span className="font-serif text-2xl tracking-[0.2em] text-white font-semibold uppercase group-hover:text-vault-gold transition-colors">
+          <span className="font-serif text-xl md:text-2xl tracking-[0.2em] text-white font-semibold uppercase whitespace-nowrap group-hover:text-vault-gold transition-colors">
             Strata <span className="text-vault-gold font-normal">Vault</span>
           </span>
-          <span className="text-[9px] tracking-widest text-vault-silver/60 uppercase">
+          <span className="hidden sm:block text-[9px] tracking-widest text-vault-silver/60 uppercase">
             Sovereign Asset & Wealth Terminal
           </span>
         </Link>
 
-        {/* Navigation Tabs */}
-        <nav className="flex items-center gap-1 p-1 bg-vault-surface/40 border border-vault-border/80 rounded-xl">
+        {/* Navigation Tabs (მობილურზე ჰორიზონტალურად სქროლავს) */}
+        <nav className="order-last lg:order-none w-full lg:w-auto overflow-x-auto flex items-center gap-1 p-1 bg-vault-surface/40 border border-vault-border/80 rounded-xl">
           {NAV_LINKS.map((link) => {
             const isActive = pathname === link.href;
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`px-3 py-1.5 rounded-lg text-[11px] uppercase tracking-wider transition-all ${
+                aria-current={isActive ? "page" : undefined}
+                className={`flex-1 lg:flex-none text-center whitespace-nowrap px-3 py-1.5 rounded-lg text-[11px] uppercase tracking-wider transition-all ${
                   isActive
                     ? "bg-vault-gold/20 text-vault-gold border border-vault-gold/40 shadow-sm font-semibold"
                     : "text-vault-silver/60 hover:text-white hover:bg-vault-surface/60"
@@ -54,7 +63,7 @@ export default function Header({ onOpenOTC }: HeaderProps) {
       </div>
 
       {/* Right Telemetry & Actions */}
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center gap-2 md:gap-4">
         <div className="hidden lg:flex items-center gap-2 text-[11px] text-vault-emerald pr-4 border-r border-vault-border/60">
           <span className="w-1.5 h-1.5 rounded-full bg-vault-emerald animate-pulse" />
           <span>ZURICH // PRIMARY</span>
@@ -75,9 +84,12 @@ export default function Header({ onOpenOTC }: HeaderProps) {
           <span className="text-[11px] text-white/90">VAULT TIER I</span>
         </div>
 
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 border border-vault-border/80 bg-vault-surface/40 rounded-lg text-vault-silver/70 text-[11px]">
-          <Activity className="w-3 h-3 text-vault-emerald" />
-          <span className="text-white/80">LIVE</span>
+        <div
+          className="flex items-center gap-2 px-3 py-1.5 border border-vault-border/80 bg-vault-surface/40 rounded-lg text-vault-silver/70 text-[11px]"
+          aria-live="polite"
+        >
+          <Activity className={`w-3 h-3 ${status.color}`} />
+          <span className={status.color}>{status.label}</span>
         </div>
       </div>
     </header>

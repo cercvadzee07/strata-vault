@@ -4,8 +4,6 @@ import React, { useState } from "react";
 import Header from "@/components/Header";
 import ExecutionPad from "@/components/ExecutionPad";
 import {
-  ArrowUpRight,
-  ArrowDownLeft,
   CheckCircle2,
   Clock,
   FileCheck,
@@ -104,7 +102,7 @@ export default function SettlementPage() {
       {/* Global Navigation Header */}
       <Header onOpenOTC={() => setIsExecutionOpen(true)} />
 
-      <main className="max-w-[1600px] mx-auto p-8 flex flex-col gap-8">
+      <main className="max-w-[1600px] mx-auto p-4 md:p-8 flex flex-col gap-6 md:gap-8">
         {/* Top Settlement Telemetry */}
         <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="p-6 vault-card">
@@ -265,7 +263,6 @@ export default function SettlementPage() {
         isOpen={isExecutionOpen}
         onClose={() => setIsExecutionOpen(false)}
         symbol="BTCUSDT"
-        currentPrice={80400}
       />
     </div>
   );

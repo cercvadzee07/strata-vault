@@ -1,6 +1,23 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { BINANCE_WS, formatUsd } from "@/lib/assets";
+import { openReconnectingSocket } from "@/lib/reconnectingSocket";
+
+interface DepthMessage {
+  bids?: string[][];
+  asks?: string[][];
+}
+
+function toLevels(rows: string[][]): OrderLevel[] {
+  let total = 0;
+  return rows.slice(0, 6).map(([p, a]) => {
+    const price = parseFloat(p);
+    const amount = parseFloat(a);
+    total += amount;
+    return { price, amount, total };
+  });
+}
 
 interface OrderLevel {
   price: number;
@@ -15,49 +32,23 @@ export default function OrderBook({ symbol = "btcusdt" }: { symbol?: string }) {
 
   useEffect(() => {
     const cleanSymbol = symbol.toLowerCase().trim();
-    const ws = new WebSocket(
-      `wss://stream.binance.com/ws/${cleanSymbol}@depth10@1000ms`,
-    );
 
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.bids && data.asks) {
-          let bidTotal = 0;
-          const parsedBids: OrderLevel[] = data.bids
-            .slice(0, 6)
-            .map((item: string[]) => {
-              const price = parseFloat(item[0]);
-              const amount = parseFloat(item[1]);
-              bidTotal += amount;
-              return { price, amount, total: bidTotal };
-            });
-
-          let askTotal = 0;
-          const parsedAsks: OrderLevel[] = data.asks
-            .slice(0, 6)
-            .map((item: string[]) => {
-              const price = parseFloat(item[0]);
-              const amount = parseFloat(item[1]);
-              askTotal += amount;
-              return { price, amount, total: askTotal };
-            });
-
+    return openReconnectingSocket(
+      `${BINANCE_WS}/ws/${cleanSymbol}@depth10@1000ms`,
+      {
+        onMessage: (msg) => {
+          const data = msg as DepthMessage;
+          if (!data.bids || !data.asks) return;
+          const parsedBids = toLevels(data.bids);
+          const parsedAsks = toLevels(data.asks);
           setBids(parsedBids);
           setAsks(parsedAsks);
-
           if (parsedBids.length > 0 && parsedAsks.length > 0) {
             setSpread(parsedAsks[0].price - parsedBids[0].price);
           }
-        }
-      } catch (err) {
-        console.error("OrderBook WS parse error:", err);
-      }
-    };
-
-    return () => {
-      ws.close();
-    };
+        },
+      },
+    );
   }, [symbol]);
 
   const maxTotal = Math.max(
@@ -66,7 +57,7 @@ export default function OrderBook({ symbol = "btcusdt" }: { symbol?: string }) {
   );
 
   return (
-    <div className="vault-card p-6 h-[460px] flex flex-col justify-between overflow-hidden">
+    <div className="vault-card p-4 md:p-6 h-[460px] flex flex-col justify-between overflow-hidden">
       <div>
         <div className="flex justify-between items-center mb-3">
           <div>
@@ -91,11 +82,11 @@ export default function OrderBook({ symbol = "btcusdt" }: { symbol?: string }) {
 
         {/* Asks (Sells) */}
         <div className="flex flex-col-reverse gap-1 my-2">
-          {asks.map((ask, idx) => {
+          {asks.map((ask) => {
             const depthPct = Math.min(100, (ask.total / maxTotal) * 100);
             return (
               <div
-                key={idx}
+                key={ask.price}
                 className="relative grid grid-cols-3 text-[11px] py-0.5 tabular-nums"
               >
                 <div
@@ -103,10 +94,7 @@ export default function OrderBook({ symbol = "btcusdt" }: { symbol?: string }) {
                   style={{ width: `${depthPct}%` }}
                 />
                 <span className="text-vault-rose font-medium z-10">
-                  $
-                  {ask.price.toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                  })}
+                  ${formatUsd(ask.price)}
                 </span>
                 <span className="text-right text-white/80 z-10">
                   {ask.amount.toFixed(4)}
@@ -132,11 +120,11 @@ export default function OrderBook({ symbol = "btcusdt" }: { symbol?: string }) {
 
         {/* Bids (Buys) */}
         <div className="flex flex-col gap-1 my-2">
-          {bids.map((bid, idx) => {
+          {bids.map((bid) => {
             const depthPct = Math.min(100, (bid.total / maxTotal) * 100);
             return (
               <div
-                key={idx}
+                key={bid.price}
                 className="relative grid grid-cols-3 text-[11px] py-0.5 tabular-nums"
               >
                 <div
@@ -144,10 +132,7 @@ export default function OrderBook({ symbol = "btcusdt" }: { symbol?: string }) {
                   style={{ width: `${depthPct}%` }}
                 />
                 <span className="text-vault-emerald font-medium z-10">
-                  $
-                  {bid.price.toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                  })}
+                  ${formatUsd(bid.price)}
                 </span>
                 <span className="text-right text-white/80 z-10">
                   {bid.amount.toFixed(4)}
